@@ -10,7 +10,18 @@ import debug from 'debug';
 
 const app: express.Application = express();
 const server: http.Server = http.createServer(app);
-const port = 3000;
+const env: string = String(process.env.NODE_ENV);
+
+const configPath = `./config/${env}`;
+let config = null;
+try {
+    config = require(configPath).default;
+} catch (e) {
+    console.error('Cannot load config: [%s] %s', env, configPath);
+    throw e;
+}
+
+const port = Number(config.port);
 const routes: Array<CommonRoutesConfig> = [];
 const debugLog: debug.IDebugger = debug('app');
 
@@ -44,7 +55,7 @@ app.get('/', (req: express.Request, res: express.Response) => {
     res.status(200).send(`Server running at http://localhost:${port}`)
 });
 server.listen(port, () => {
-    debugLog(`Server running at http://localhost:${port}`);
+    console.log(`Server running at http://localhost:${port}`);
     routes.forEach((route: CommonRoutesConfig) => {
         debugLog(`Routes configured for ${route.getName()}`);
     });
